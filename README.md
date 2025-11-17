@@ -54,13 +54,14 @@ Didesain khusus untuk kebutuhan akademik seperti laporan praktikum, tugas kuliah
 
 ## 📁 Struktur Proyek
 
-📦 Scanner-Plagiarisme
-┣ 📂 assets
-┃ ┗ 📂 img
-┃ ┗ favicon.png
-┣ 📄 index.html
-┗ 📄 README.md
----
+Scanner-Plagiarisme/
+│
+├── assets/
+│ └── img/
+│ └── favicon.png
+│
+├── index.html
+└── README.md
 
 
 ## 🎯 Cocok Untuk
