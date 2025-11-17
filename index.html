@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Plagiarisme PDF Modul</title>
+
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Montserrat:wght@500;700&display=swap"
+        rel="stylesheet">
+
+
+    <link rel="icon" type="image/png" href="assets/img/be8e566c8681ff703c922c55b60d9f28.png">
+    <style>
+        body {
+            background: #f4f4f4;
+        }
+
+        .card {
+            border-radius: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container py-5">
+
+        <div class="card shadow p-4">
+            <h2 class="text-center">📄 Scanner Plagiarisme PDF</h2>
+
+            <div class="mt-3">
+                <label class="form-label fw-bold">Pilih Modul</label>
+                <select id="modul" class="form-select">
+                    <option selected disabled>Pilih Modul</option>
+                    <script>
+                        for (let i = 1; i <= 14; i++) {
+                            document.write(`<option value="${i}">Modul ${i}</option>`);
+                        }
+                    </script>
+                </select>
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label fw-bold">Upload File PDF (36 Orang)</label>
+                <input type="file" id="pdfInput" class="form-control" accept="application/pdf" multiple>
+                <small class="text-muted">Upload file PDF dari semua mahasiswa</small>
+            </div>
+
+            <button class="btn btn-primary w-100 mt-3" onclick="processPDFs()">Mulai Scan</button>
+        </div>
+
+        <div id="resultSection" class="mt-4"></div>
+
+    </div>
+
+    <script>
+        // ============================
+        // BACA PDF → RETURN TEXT
+        // ============================
+        async function readPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+
+            let text = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(" ") + " ";
+            }
+            return text;
+        }
+
+        // =================================
+        // HITUNG SIMILARITY (Cosine)
+        // =================================
+        function similarity(a, b) {
+            const wordsA = a.toLowerCase().split(/\W+/);
+            const wordsB = b.toLowerCase().split(/\W+/);
+
+            let set = new Set([...wordsA, ...wordsB]);
+            let vA = [],
+                vB = [];
+
+            set.forEach(w => {
+                vA.push(wordsA.filter(x => x === w).length);
+                vB.push(wordsB.filter(x => x === w).length);
+            });
+
+            let dot = vA.reduce((s, v, i) => s + v * vB[i], 0);
+            let magA = Math.sqrt(vA.reduce((s, v) => s + v * v, 0));
+            let magB = Math.sqrt(vB.reduce((s, v) => s + v * v, 0));
+
+            return (dot / (magA * magB)) * 100 || 0;
+        }
+
+        function getGrade(score) {
+            if (score > 80) return "A";
+            if (score >= 65) return "B";
+            if (score >= 40) return "C";
+            return "D";
+        }
+
+        // =================================
+        // PROSES SEMUA PDF
+        // =================================
+        async function processPDFs() {
+            const files = document.getElementById("pdfInput").files;
+
+            if (files.length === 0) {
+                alert("Upload minimal 2 PDF!");
+                return;
+            }
+            if (files.length > 36) {
+                alert("Max 36 orang per modul!");
+                return;
+            }
+
+            let extracted = [];
+
+            // BACA SEMUA PDF
+            for (let file of files) {
+                let text = await readPDF(file);
+                extracted.push({
+                    name: file.name,
+                    text
+                });
+            }
+
+            // ==============================
+            // BUAT TABEL HASIL
+            // ==============================
+            let highest = {
+                name: "",
+                score: 0
+            };
+
+            let html = `
+        <div class="card shadow p-4">
+            <h3 class="text-center">📊 Hasil Scan Plagiarisme PDF</h3>
+
+            <table class="table table-bordered mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nama File</th>
+                        <th>Kemiripan Tertinggi</th>
+                        <th>Plagiat Dengan</th>
+                        <th>Nilai</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+            extracted.forEach((A, i) => {
+                let maxSim = 0;
+                let plagWith = "-";
+
+                extracted.forEach((B, j) => {
+                    if (i !== j) {
+                        let sim = similarity(A.text, B.text);
+
+                        if (sim > maxSim) {
+                            maxSim = sim;
+                            plagWith = B.name;
+                        }
+                    }
+                });
+
+                if (maxSim > highest.score) {
+                    highest = {
+                        name: A.name,
+                        score: maxSim
+                    };
+                }
+
+                html += `
+            <tr>
+                <td>${A.name}</td>
+                <td>${maxSim.toFixed(2)}%</td>
+                <td>${plagWith}</td>
+                <td>${getGrade(100 - maxSim)}</td>
+            </tr>`;
+            });
+
+            html += `
+                </tbody>
+            </table>
+
+            <div class="alert alert-danger">
+                🔥 <b>Paling Tinggi Plagiat:</b> ${highest.name} 
+                (<b>${highest.score.toFixed(2)}%</b>)
+            </div>
+        </div>`;
+
+            document.getElementById("resultSection").innerHTML = html;
+        }
+    </script>
+    <footer style="background:#1c1c1c; color:#ddd; padding:50px 0; font-family:'Poppins', sans-serif;">
+
+        <div class="container">
+            <div class="row">
+
+                <!-- BRAND -->
+                <div class="col-md-4 mb-4">
+                    <h4 style="font-family:'Montserrat', sans-serif; font-weight:700; color:#fff;">
+                        Scanner Plagiarisme PDF
+                    </h4>
+                    <p style="line-height:1.7; margin-top:10px;">
+                        Sistem pengecekan kemiripan otomatis untuk modul mahasiswa.
+                        Cepat, modern, dan akurat dalam mendeteksi persentase kesamaan antar file PDF.
+                    </p>
+                </div>
+
+                <!-- TENTANG -->
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold mb-3" style="color:#fff;">Tentang</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Tentang Aplikasi</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Developer</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Artikel & Info</a></li>
+                    </ul>
+                </div>
+
+                <!-- FITUR -->
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold mb-3" style="color:#fff;">Fitur</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Upload PDF</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Deteksi Plagiat</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Nilai Otomatis</a></li>
+                    </ul>
+                </div>
+
+                <!-- BANTUAN -->
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold mb-3" style="color:#fff;">Bantuan</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">FAQ</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Hubungi Kami</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Pusat Bantuan</a></li>
+                    </ul>
+                </div>
+
+                <!-- KEBIJAKAN -->
+                <div class="col-md-2 mb-4">
+                    <h6 class="fw-bold mb-3" style="color:#fff;">Kebijakan</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Kebijakan Privasi</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <hr style="border-color:#444;">
+
+            <!-- COPYRIGHT -->
+            <div class="text-center mt-3">
+                <p style="margin:0; font-family:'Montserrat', sans-serif; font-size:15px; color:#fff;">
+                    © Ngoding Happy 2025. All rights reserved.
+                </p>
+                <small style="color:#bbb;">
+                    Dikelola oleh <b>ngodinghappy</b> • Pemilik: <b>Muhammad Luthfi Farizqi</b>
+                </small>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
