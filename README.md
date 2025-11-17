@@ -1,51 +1,86 @@
-<section style="
-    background: linear-gradient(135deg, #1a1a1a, #343434);
-    padding: 80px 0;
-    color: #fff;
-    font-family: 'Poppins', sans-serif;
-">
-    <div class="container text-center">
-        <h1 style="
-            font-family:'Montserrat', sans-serif;
-            font-size:45px;
-            font-weight:700;
-            margin-bottom:20px;
-            letter-spacing:1px;
-        ">
-            🔍 Scanner Plagiarisme PDF
-        </h1>
+# 📄 Scanner Plagiarisme PDF (Modul 1–14)
 
-        <p style="
-            font-size:18px;
-            max-width:750px;
-            margin:0 auto;
-            line-height:1.8;
-            opacity:0.9;
-        ">
-            Platform pendeteksi kemiripan dokumen PDF berbasis algoritma tekstual modern. 
-            Sistem ini dirancang untuk membantu dosen, asisten praktikum, serta institusi 
-            pendidikan dalam memeriksa plagiarisme secara cepat, akurat, dan otomatis.
-        </p>
+Selamat datang di **Scanner Plagiarisme PDF**, sebuah alat cerdas yang dirancang untuk memeriksa tingkat kemiripan antar dokumen PDF secara cepat, akurat, dan otomatis.  
+Didesain khusus untuk kebutuhan akademik seperti laporan praktikum, tugas kuliah, hingga modul pembelajaran.
 
-        <div style="margin-top:35px;">
-            <a href="#scanner" style="
-                background:#ffbb33;
-                color:#000;
-                padding:13px 35px;
-                border-radius:50px;
-                font-weight:600;
-                text-decoration:none;
-                box-shadow:0 4px 15px rgba(255,187,51,0.4);
-                transition:0.3s;
-            "
-            onmouseover="this.style.opacity='0.8'"
-            onmouseout="this.style.opacity='1'">
-                Mulai Scan Sekarang
-            </a>
-        </div>
+> 🔍 **Cukup upload – sistem menganalisis – hasil langsung muncul.**
 
-        <p style="margin-top:50px; font-size:14px; opacity:0.7;">
-            © 2025 Scanner Plagiarisme PDF • Developed by <b>Muhammad Luthfi Farizqi</b>
-        </p>
-    </div>
-</section>
+---
+
+## ✨ Apa yang Membuat Scanner Ini Spesial?
+
+- ⚡ **Super Cepat** – Memproses banyak PDF sekaligus (hingga 36 file per modul).  
+- 🧠 **Cerdas & Akurat** – Menggunakan algoritma *Cosine Similarity* untuk menghitung persentase kemiripan.  
+- 📚 **Mendukung 14 Modul** – Cocok untuk kebutuhan asistensi atau dosen pengampu.  
+- 🧾 **Analisis Otomatis** – Menampilkan file mana yang paling tinggi plagiasinya.  
+- 🎯 **Penilaian Real-Time** – Sistem memberi nilai otomatis berdasarkan tingkat kesamaan.  
+- 🎨 **UI Modern** – Tertata rapi dengan Bootstrap 5 sehingga mudah digunakan.
+
+---
+
+## 🛠 Teknologi di Balik Layar
+
+- **HTML5, CSS3, JavaScript**
+- **Bootstrap 5**
+- **PDF.js** untuk membaca isi PDF
+- Algoritma **Cosine Similarity** untuk perhitungan similarity
+
+> Dibuat untuk tetap ringan, cepat, dan bisa dijalankan langsung tanpa server.
+
+---
+
+## 🚀 Cara Menggunakan
+
+1. Buka file **index.html**
+2. Pilih modul (Modul 1–Modul 14)
+3. Upload PDF mahasiswa (maks. 36 file)
+4. Klik **Mulai Scan**
+5. Hasil plagiarisme akan muncul otomatis dalam bentuk tabel analisis
+
+---
+
+## 🧮 Sistem Penilaian Similarity
+
+| Tingkat Kemiripan | Nilai |
+|-------------------|-------|
+| > 80%             | A     |
+| 65–80%            | B     |
+| 40–64%            | C     |
+| < 40%             | D     |
+
+> Semakin tinggi persentase similarity, semakin besar kemungkinan plagiarisme.
+
+---
+
+## 📁 Struktur Proyek
+
+📦 Scanner-Plagiarisme
+┣ 📂 assets
+┃ ┗ 📂 img
+┃ ┗ favicon.png
+┣ 📄 index.html
+┗ 📄 README.md
+---
+
+
+## 🎯 Cocok Untuk
+
+- Laporan Praktikum  
+- Penilaian Tugas Kuliah  
+- Skripsi Bab Teori  
+- Analisis Kesamaan Dokumen Pendidikan  
+- Koreksi cepat dalam jumlah banyak  
+
+---
+
+## 👨‍💻 Developer
+
+**Created & Designed by:**  
+### 💻 *Muhammad Luthfi Farizqi*
+
+---
+
+## 🔒 Copyright
+© 2025 Scanner Plagiarisme PDF
+All Rights Reserved.
+Unauthorized copying, distribution, or modification of this software is strictly prohibited.
