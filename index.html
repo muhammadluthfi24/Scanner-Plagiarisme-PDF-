@@ -4,26 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Plagiarisme PDF Modul</title>
+    <title>Scanner Plagiarisme PDF Modul — Fixed</title>
 
     <!-- BOOTSTRAP -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+    <script>
+        // IMPORTANT: set the workerSrc so pdf.js can parse files reliably
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+    </script>
+
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Montserrat:wght@500;700&display=swap"
         rel="stylesheet">
-
 
     <link rel="icon" type="image/png" href="assets/img/be8e566c8681ff703c922c55b60d9f28.png">
     <style>
         body {
             background: #f4f4f4;
+            font-family: 'Poppins', sans-serif;
         }
 
         .card {
-            border-radius: 15px;
+            border-radius: 12px;
+        }
+
+        pre.small {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 12px;
+        }
+
+        .muted-small {
+            font-size: 13px;
+            color: #6c757d;
         }
     </style>
 </head>
@@ -33,244 +50,299 @@
     <div class="container py-5">
 
         <div class="card shadow p-4">
-            <h2 class="text-center">📄 Scanner Plagiarisme PDF</h2>
+            <h2 class="text-center">📄 Scanner Plagiarisme PDF — Fixed</h2>
 
-            <div class="mt-3">
-                <label class="form-label fw-bold">Pilih Modul</label>
-                <select id="modul" class="form-select">
-                    <option selected disabled>Pilih Modul</option>
-                    <script>
-                        for (let i = 1; i <= 14; i++) {
-                            document.write(`<option value="${i}">Modul ${i}</option>`);
-                        }
-                    </script>
-                </select>
+            <div class="row g-3 mt-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Pilih Modul</label>
+                    <select id="modul" class="form-select">
+                        <option value="" selected disabled>Pilih Modul</option>
+                    </select>
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">Upload File PDF (Maks 36 orang)</label>
+                    <input type="file" id="pdfInput" class="form-control" accept="application/pdf" multiple>
+                    <div class="muted-small mt-1">Tip: jika file adalah hasil scan (gambar) — teks akan kosong. Gunakan OCR terlebih
+                        dahulu.</div>
+                </div>
             </div>
 
-            <div class="mt-3">
-                <label class="form-label fw-bold">Upload File PDF (36 Orang)</label>
-                <input type="file" id="pdfInput" class="form-control" accept="application/pdf" multiple>
-                <small class="text-muted">Upload file PDF dari semua mahasiswa</small>
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-primary" id="startBtn">Mulai Scan</button>
             </div>
 
-            <button class="btn btn-primary w-100 mt-3" onclick="processPDFs()">Mulai Scan</button>
+            <div id="status" class="mt-3"></div>
+
+            <div id="resultSection" class="mt-4"></div>
         </div>
-
-        <div id="resultSection" class="mt-4"></div>
 
     </div>
 
+    <footer style="background:#1c1c1c; color:#ddd; padding:30px 0; font-family:'Poppins', sans-serif; margin-top:30px;">
+
+        <div class="container">
+            <div class="row">
+
+                <div class="col-md-4 mb-3">
+                    <h4 style="font-family:'Montserrat', sans-serif; font-weight:700; color:#fff;">Scanner Plagiarisme PDF</h4>
+                    <p style="line-height:1.6; margin-top:10px; color:#bbb;">Sistem pengecekan kemiripan otomatis untuk modul mahasiswa. Cepat
+                        dan sederhana — cocok untuk pemeriksaan awal.</p>
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <h6 class="fw-bold mb-2" style="color:#fff;">Tentang</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Tentang Aplikasi</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Developer</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <h6 class="fw-bold mb-2" style="color:#fff;">Fitur</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Upload PDF</a></li>
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">Deteksi</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <h6 class="fw-bold mb-2" style="color:#fff;">Bantuan</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#" style="color:#bbb; text-decoration:none;">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-2 mb-3 text-end">
+                    <p style="margin:0; font-family:'Montserrat', sans-serif; font-size:15px; color:#fff;">© Ngoding Happy 2025
+                    </p>
+                    <small style="color:#bbb;">Dikelola oleh <b>ngodinghappy</b> • Pemilik: <b>Muhammad Luthfi
+                            Farizqi</b></small>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+
     <script>
+        // populate modul select
+        (function populateModules() {
+            const sel = document.getElementById('modul');
+            for (let i = 1; i <= 14; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = 'Modul ' + i;
+                sel.appendChild(opt);
+            }
+        })();
+
         // ============================
         // BACA PDF → RETURN TEXT
         // ============================
-        async function readPDF(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        async function readPDF(file, onProgress) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
 
-            let text = "";
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                text += content.items.map(item => item.str).join(" ") + " ";
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    const pageText = content.items.map(item => item.str).join(' ');
+                    text += pageText + ' ';
+                    if (onProgress) onProgress(i, pdf.numPages);
+                }
+
+                return text.trim();
+            } catch (err) {
+                console.error('readPDF error', err);
+                return null; // indicate failure
             }
-            return text;
         }
 
         // =================================
-        // HITUNG SIMILARITY (Cosine)
+        // HITUNG SIMILARITY (Cosine) — improved tokenization
         // =================================
+        function tokenize(s) {
+            return s
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .split(/\s+/)
+                .filter(Boolean);
+        }
+
         function similarity(a, b) {
-            const wordsA = a.toLowerCase().split(/\W+/);
-            const wordsB = b.toLowerCase().split(/\W+/);
+            const wordsA = tokenize(a);
+            const wordsB = tokenize(b);
 
-            let set = new Set([...wordsA, ...wordsB]);
-            let vA = [],
-                vB = [];
+            if (wordsA.length === 0 || wordsB.length === 0) return 0;
 
-            set.forEach(w => {
-                vA.push(wordsA.filter(x => x === w).length);
-                vB.push(wordsB.filter(x => x === w).length);
-            });
+            const freqA = {};
+            const freqB = {};
 
-            let dot = vA.reduce((s, v, i) => s + v * vB[i], 0);
-            let magA = Math.sqrt(vA.reduce((s, v) => s + v * v, 0));
-            let magB = Math.sqrt(vB.reduce((s, v) => s + v * v, 0));
+            for (const w of wordsA) freqA[w] = (freqA[w] || 0) + 1;
+            for (const w of wordsB) freqB[w] = (freqB[w] || 0) + 1;
 
+            const all = new Set([...Object.keys(freqA), ...Object.keys(freqB)]);
+            let dot = 0, magA = 0, magB = 0;
+            for (const w of all) {
+                const va = freqA[w] || 0;
+                const vb = freqB[w] || 0;
+                dot += va * vb;
+                magA += va * va;
+                magB += vb * vb;
+            }
+            magA = Math.sqrt(magA);
+            magB = Math.sqrt(magB);
             return (dot / (magA * magB)) * 100 || 0;
         }
 
         function getGrade(score) {
-            if (score > 80) return "A";
-            if (score >= 65) return "B";
-            if (score >= 40) return "C";
-            return "D";
+            if (score > 80) return 'A';
+            if (score >= 65) return 'B';
+            if (score >= 40) return 'C';
+            return 'D';
         }
 
         // =================================
-        // PROSES SEMUA PDF
+        // MAIN PROCESS
         // =================================
-        async function processPDFs() {
-            const files = document.getElementById("pdfInput").files;
+        document.getElementById('startBtn').addEventListener('click', processPDFs);
 
-            if (files.length === 0) {
-                alert("Upload minimal 2 PDF!");
+        async function processPDFs() {
+            const files = Array.from(document.getElementById('pdfInput').files);
+            const resultSection = document.getElementById('resultSection');
+            const status = document.getElementById('status');
+
+            resultSection.innerHTML = '';
+            status.innerHTML = '';
+
+            if (!files.length) {
+                alert('Upload minimal 2 PDF!');
                 return;
             }
             if (files.length > 36) {
-                alert("Max 36 orang per modul!");
+                alert('Max 36 orang per modul!');
                 return;
             }
 
-            let extracted = [];
+            // show initial status
+            status.innerHTML = `<div class="alert alert-info">Memproses ${files.length} file... <small id="subStatus"></small></div>`;
+            const subStatus = document.getElementById('subStatus');
 
-            // BACA SEMUA PDF
-            for (let file of files) {
-                let text = await readPDF(file);
-                extracted.push({
-                    name: file.name,
-                    text
+            // read files sequentially but non-blocking UI
+            const extracted = [];
+
+            for (let idx = 0; idx < files.length; idx++) {
+                const file = files[idx];
+                subStatus.textContent = `Membaca ${file.name} (${idx + 1}/${files.length})`;
+
+                const text = await readPDF(file, (page, total) => {
+                    subStatus.textContent = `Membaca ${file.name}: halaman ${page}/${total}`;
                 });
+
+                if (text === null) {
+                    extracted.push({ name: file.name, text: '', error: true });
+                } else {
+                    extracted.push({ name: file.name, text, error: false });
+                }
             }
 
-            // ==============================
-            // BUAT TABEL HASIL
-            // ==============================
-            let highest = {
-                name: "",
-                score: 0
-            };
+            // compute similarities
+            // prepare table
+            let highest = { name: '', score: 0 };
 
             let html = `
-        <div class="card shadow p-4">
+        <div class="card shadow p-3">
             <h3 class="text-center">📊 Hasil Scan Plagiarisme PDF</h3>
-
-            <table class="table table-bordered mt-3">
+            <div class="table-responsive mt-3">
+            <table class="table table-bordered table-sm align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>Nama File</th>
-                        <th>Kemiripan Tertinggi</th>
+                        <th>Kesamaan Tertinggi</th>
                         <th>Plagiat Dengan</th>
                         <th>Nilai</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
 
-            extracted.forEach((A, i) => {
+            for (let i = 0; i < extracted.length; i++) {
+                const A = extracted[i];
                 let maxSim = 0;
-                let plagWith = "-";
+                let plagWith = '-';
 
-                extracted.forEach((B, j) => {
-                    if (i !== j) {
-                        let sim = similarity(A.text, B.text);
-
-                        if (sim > maxSim) {
-                            maxSim = sim;
-                            plagWith = B.name;
-                        }
-                    }
-                });
-
-                if (maxSim > highest.score) {
-                    highest = {
-                        name: A.name,
-                        score: maxSim
-                    };
+                if (A.error) {
+                    html += `<tr><td>${A.name}</td><td>-</td><td>-</td><td>-</td><td><span class="text-danger">Gagal baca PDF</span></td></tr>`;
+                    continue;
                 }
 
+                if ((A.text || '').length < 30) {
+                    // very short text — probably image-only pdf
+                    html += `<tr>
+                        <td>${A.name}</td>
+                        <td>0%</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td><span class="text-warning">Teks sedikit / image-only (gunakan OCR)</span></td>
+                    </tr>`;
+                    continue;
+                }
+
+                for (let j = 0; j < extracted.length; j++) {
+                    if (i === j) continue;
+                    const B = extracted[j];
+                    if (B.error || (B.text || '').length < 30) continue;
+
+                    const sim = similarity(A.text, B.text);
+                    if (sim > maxSim) {
+                        maxSim = sim;
+                        plagWith = B.name;
+                    }
+                }
+
+                if (maxSim > highest.score) highest = { name: A.name, score: maxSim };
+
+                const grade = getGrade(100 - maxSim); // grade based on dissimilarity
+
                 html += `
-            <tr>
-                <td>${A.name}</td>
-                <td>${maxSim.toFixed(2)}%</td>
-                <td>${plagWith}</td>
-                <td>${getGrade(100 - maxSim)}</td>
-            </tr>`;
-            });
+                <tr>
+                    <td>${A.name}</td>
+                    <td>${maxSim.toFixed(2)}%</td>
+                    <td>${plagWith}</td>
+                    <td>${grade}</td>
+                    <td><small class="text-muted">Panjang teks: ${A.text.length} chars</small></td>
+                </tr>`;
+            }
 
             html += `
                 </tbody>
             </table>
+            </div>
 
-            <div class="alert alert-danger">
-                🔥 <b>Paling Tinggi Plagiat:</b> ${highest.name} 
-                (<b>${highest.score.toFixed(2)}%</b>)
+            <div class="mt-3">
+                <div class="alert alert-${highest.score >= 30 ? 'danger' : 'secondary'}">
+                    🔥 <b>Paling Tinggi Kemiripan:</b> ${highest.name || '-'} <b>(${highest.score.toFixed(2)}%)</b>
+                </div>
+
+                <div class="small text-muted">Catatan: Jika file merupakan hasil scan gambar (foto atau scan tanpa OCR), teks tidak akan
+                    terbaca. Gunakan aplikasi OCR (contoh: Google Drive OCR, Tesseract) untuk mengekstrak teks sebelum
+                    meng-upload.</div>
             </div>
         </div>`;
 
-            document.getElementById("resultSection").innerHTML = html;
+            resultSection.innerHTML = html;
+            status.innerHTML = `<div class="alert alert-success">Selesai memproses ${files.length} file.</div>`;
+
+            // scroll to result
+            resultSection.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
-    <footer style="background:#1c1c1c; color:#ddd; padding:50px 0; font-family:'Poppins', sans-serif;">
 
-        <div class="container">
-            <div class="row">
-
-                <!-- BRAND -->
-                <div class="col-md-4 mb-4">
-                    <h4 style="font-family:'Montserrat', sans-serif; font-weight:700; color:#fff;">
-                        Scanner Plagiarisme PDF
-                    </h4>
-                    <p style="line-height:1.7; margin-top:10px;">
-                        Sistem pengecekan kemiripan otomatis untuk modul mahasiswa.
-                        Cepat, modern, dan akurat dalam mendeteksi persentase kesamaan antar file PDF.
-                    </p>
-                </div>
-
-                <!-- TENTANG -->
-                <div class="col-md-2 mb-4">
-                    <h6 class="fw-bold mb-3" style="color:#fff;">Tentang</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Tentang Aplikasi</a></li>
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Developer</a></li>
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Artikel & Info</a></li>
-                    </ul>
-                </div>
-
-                <!-- FITUR -->
-                <div class="col-md-2 mb-4">
-                    <h6 class="fw-bold mb-3" style="color:#fff;">Fitur</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Upload PDF</a></li>
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Deteksi Plagiat</a></li>
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Nilai Otomatis</a></li>
-                    </ul>
-                </div>
-
-                <!-- BANTUAN -->
-                <div class="col-md-2 mb-4">
-                    <h6 class="fw-bold mb-3" style="color:#fff;">Bantuan</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">FAQ</a></li>
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Hubungi Kami</a></li>
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Pusat Bantuan</a></li>
-                    </ul>
-                </div>
-
-                <!-- KEBIJAKAN -->
-                <div class="col-md-2 mb-4">
-                    <h6 class="fw-bold mb-3" style="color:#fff;">Kebijakan</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Kebijakan Privasi</a></li>
-                        <li><a href="#" style="color:#bbb; text-decoration:none;">Syarat & Ketentuan</a></li>
-                    </ul>
-                </div>
-
-            </div>
-
-            <hr style="border-color:#444;">
-
-            <!-- COPYRIGHT -->
-            <div class="text-center mt-3">
-                <p style="margin:0; font-family:'Montserrat', sans-serif; font-size:15px; color:#fff;">
-                    © Ngoding Happy 2025. All rights reserved.
-                </p>
-                <small style="color:#bbb;">
-                    Dikelola oleh <b>ngodinghappy</b> • Pemilik: <b>Muhammad Luthfi Farizqi</b>
-                </small>
-            </div>
-        </div>
-    </footer>
 </body>
 
 </html>
